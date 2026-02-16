@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from collections import defaultdict
+import random
 
 current_stats = {
     'MKS Siechnice': {'pts': 28, 'att': 5.10, 'def': 1.82},
@@ -17,101 +18,152 @@ current_stats = {
     'Szaluna Zębice': {'pts': 16, 'att': 2.91, 'def': 3.55}
 }
 
-# pozostałe kolejki
+home_stats = {
+    'MKS Siechnice': {'att': 5.40, 'def': 3.40},
+    'Polonia Godzikowice': {'att': 1.50, 'def': 3.67},
+    'Orzeł Święta Katarzyna': {'att': 2.80, 'def': 2.20},
+    'Zorza Niemil': {'att': 1.67, 'def': 2.67},
+    'Sokół II Marcinkowice': {'att': 4.40, 'def': 1.60},
+    'Burza Chwalibożyce': {'att': 4.50, 'def': 2.75},
+    'Czarni Sobocisko': {'att': 4.75, 'def': 1.75},
+    'Lotos Gaj Oławski': {'att': 2.33, 'def': 2.67},
+    'Jankowianka Wierzbno': {'att': 2.33, 'def': 5.17},
+    'Moto Jelcz II Oława': {'att': 6.83, 'def': 1.83},
+    'Odra Kotowice': {'att': 1.67, 'def': 2.17},
+    'Szaluna Zębice': {'att': 2.00, 'def': 3.29}
+}
+
+away_stats = {
+    'MKS Siechnice': {'att': 4.83, 'def': 0.50},
+    'Polonia Godzikowice': {'att': 0.80, 'def': 6.40},
+    'Orzeł Święta Katarzyna': {'att': 3.33, 'def': 4.83},
+    'Zorza Niemil': {'att': 2.00, 'def': 2.40},
+    'Sokół II Marcinkowice': {'att': 2.83, 'def': 3.83},
+    'Burza Chwalibożyce': {'att': 3.57, 'def': 3.43},
+    'Czarni Sobocisko': {'att': 4.43, 'def': 1.57},
+    'Lotos Gaj Oławski': {'att': 2.60, 'def': 3.20},
+    'Jankowianka Wierzbno': {'att': 0.80, 'def': 3.80},
+    'Moto Jelcz II Oława': {'att': 2.00, 'def': 2.40},
+    'Odra Kotowice': {'att': 1.00, 'def': 3.00},
+    'Szaluna Zębice': {'att': 4.5, 'def': 4.00}
+}
+
 fixtures = [
-    # Kolejka 12
     ('MKS Siechnice', 'Polonia Godzikowice'), ('Orzeł Święta Katarzyna', 'Zorza Niemil'),
     ('Sokół II Marcinkowice', 'Burza Chwalibożyce'), ('Czarni Sobocisko', 'Lotos Gaj Oławski'),
     ('Jankowianka Wierzbno', 'Moto Jelcz II Oława'), ('Odra Kotowice', 'Szaluna Zębice'),
-    # Kolejka 13
     ('Odra Kotowice', 'MKS Siechnice'), ('Szaluna Zębice', 'Jankowianka Wierzbno'),
     ('Moto Jelcz II Oława', 'Czarni Sobocisko'), ('Lotos Gaj Oławski', 'Sokół II Marcinkowice'),
     ('Burza Chwalibożyce', 'Orzeł Święta Katarzyna'), ('Zorza Niemil', 'Polonia Godzikowice'),
-    # Kolejka 14
     ('MKS Siechnice', 'Zorza Niemil'), ('Polonia Godzikowice', 'Burza Chwalibożyce'),
     ('Orzeł Święta Katarzyna', 'Lotos Gaj Oławski'), ('Sokół II Marcinkowice', 'Moto Jelcz II Oława'),
     ('Czarni Sobocisko', 'Szaluna Zębice'), ('Jankowianka Wierzbno', 'Odra Kotowice'),
-    # Kolejka 15
     ('Czarni Sobocisko', 'Odra Kotowice'), ('Jankowianka Wierzbno', 'MKS Siechnice'),
     ('Szaluna Zębice', 'Sokół II Marcinkowice'), ('Moto Jelcz II Oława', 'Orzeł Święta Katarzyna'),
     ('Lotos Gaj Oławski', 'Polonia Godzikowice'), ('Burza Chwalibożyce', 'Zorza Niemil'),
-    # Kolejka 16
     ('MKS Siechnice', 'Burza Chwalibożyce'), ('Zorza Niemil', 'Lotos Gaj Oławski'),
     ('Polonia Godzikowice', 'Moto Jelcz II Oława'), ('Orzeł Święta Katarzyna', 'Szaluna Zębice'),
     ('Sokół II Marcinkowice', 'Odra Kotowice'), ('Czarni Sobocisko', 'Jankowianka Wierzbno'),
-    # Kolejka 17
     ('Czarni Sobocisko', 'MKS Siechnice'), ('Jankowianka Wierzbno', 'Sokół II Marcinkowice'),
     ('Odra Kotowice', 'Orzeł Święta Katarzyna'), ('Szaluna Zębice', 'Polonia Godzikowice'),
     ('Moto Jelcz II Oława', 'Zorza Niemil'), ('Lotos Gaj Oławski', 'Burza Chwalibożyce'),
-    # Kolejka 18
     ('MKS Siechnice', 'Lotos Gaj Oławski'), ('Burza Chwalibożyce', 'Moto Jelcz II Oława'),
     ('Zorza Niemil', 'Szaluna Zębice'), ('Polonia Godzikowice', 'Odra Kotowice'),
     ('Orzeł Święta Katarzyna', 'Jankowianka Wierzbno'), ('Sokół II Marcinkowice', 'Czarni Sobocisko'),
-    # Kolejka 19
     ('Burza Chwalibożyce', 'Szaluna Zębice'), ('Sokół II Marcinkowice', 'MKS Siechnice'),
     ('Czarni Sobocisko', 'Orzeł Święta Katarzyna'), ('Jankowianka Wierzbno', 'Polonia Godzikowice'),
     ('Odra Kotowice', 'Zorza Niemil'), ('Moto Jelcz II Oława', 'Lotos Gaj Oławski'),
-    # Kolejka 20
     ('MKS Siechnice', 'Moto Jelcz II Oława'), ('Lotos Gaj Oławski', 'Szaluna Zębice'),
     ('Burza Chwalibożyce', 'Odra Kotowice'), ('Zorza Niemil', 'Jankowianka Wierzbno'),
     ('Polonia Godzikowice', 'Czarni Sobocisko'), ('Orzeł Święta Katarzyna', 'Sokół II Marcinkowice'),
-    # Kolejka 21
     ('Burza Chwalibożyce', 'Jankowianka Wierzbno'), ('Orzeł Święta Katarzyna', 'MKS Siechnice'),
     ('Sokół II Marcinkowice', 'Polonia Godzikowice'), ('Czarni Sobocisko', 'Zorza Niemil'),
     ('Odra Kotowice', 'Lotos Gaj Oławski'), ('Szaluna Zębice', 'Moto Jelcz II Oława'),
-    # Kolejka 22
     ('MKS Siechnice', 'Szaluna Zębice'), ('Moto Jelcz II Oława', 'Odra Kotowice'),
     ('Lotos Gaj Oławski', 'Jankowianka Wierzbno'), ('Burza Chwalibożyce', 'Czarni Sobocisko'),
     ('Zorza Niemil', 'Sokół II Marcinkowice'), ('Polonia Godzikowice', 'Orzeł Święta Katarzyna')
 ]
 
+def get_weighted_stat(team, stat_type, context):
+    weight_specific = 0.3 # waga statystyk dom/wyjazd
+    weight_general = 0.7 # waga statystyk ogólnych
+
+    if context == 'home':
+        specific_val = home_stats[team][stat_type]
+    else:
+        specific_val = away_stats[team][stat_type]
+
+    general_val = current_stats[team][stat_type]
+
+    return (specific_val * weight_specific) + (general_val * weight_general)
+
 
 def simulate_match(home, away):
-    # Model Poissona (bonus 14% dla gospodarza wg. statystyk z 1 polowy sezonu)
-    h_lambda = current_stats[home]['att'] * current_stats[away]['def'] * 1.07 / 2.0
-    a_lambda = current_stats[away]['att'] * current_stats[home]['def'] * 0.93/ 2.0
+    h_att = get_weighted_stat(home, 'att', 'home')
+    h_def = get_weighted_stat(home, 'def', 'home')
+    a_att = get_weighted_stat(away, 'att', 'away')
+    a_def = get_weighted_stat(away, 'def', 'away')
+
+    home_perf = random.uniform(0.75, 1.25)
+    away_perf = random.uniform(0.75, 1.25)
+
+
+    home_advantage = 1.1
+
+    h_lambda = ((h_att + a_def)* home_advantage / 2.0) * home_perf
+    a_lambda = ((a_att + h_def) / 2.0) * away_perf
+
     h_goals = np.random.poisson(h_lambda)
     a_goals = np.random.poisson(a_lambda)
-    if h_goals > a_goals:
-        return 3, 0
-    elif h_goals < a_goals:
-        return 0, 3
-    else:
-        return 1, 1
 
-# 3. SYMULACJA
-iterations = 10000
+    return h_goals, a_goals
+
+iterations = 100000
 results = defaultdict(lambda: defaultdict(int))
 total_points_accumulated = defaultdict(int)
 
-for _ in range(iterations):
+for i in range(iterations):
+    if i%100==0:
+        print(f'completed in {i/iterations*100: .1f}%\n-------------------')
     season_pts = {t: d['pts'] for t, d in current_stats.items()}
-    for h, a in fixtures:
-        hp, ap = simulate_match(h, a)
-        season_pts[h] += hp
-        season_pts[a] += ap
 
-    sorted_teams = sorted(season_pts.items(), key=lambda x: x[1], reverse=True)
+    for h, a in fixtures:
+        hg, ag = simulate_match(h, a)
+
+        if hg > ag:
+            season_pts[h] += 3
+        elif ag > hg:
+            season_pts[a] += 3
+        else:
+            season_pts[h] += 1
+            season_pts[a] += 1
+
+    sorted_teams = sorted(season_pts.items(), key=lambda x: (x[1], random.random()), reverse=True)
+
     for rank, (team, pts) in enumerate(sorted_teams, 1):
         results[team][rank] += 1
         total_points_accumulated[team] += pts
 
 summary_data = []
 for team in sorted(current_stats.keys()):
-    win_pct = (results[team][1] / iterations) * 100
-    second_pct = (results[team][2] / iterations) * 100
-    top3_pct = ((results[team][1] + results[team][2] + results[team][3]) / iterations) * 100
+    win = (results[team][1] / iterations) * 100
+    top2 = ((results[team][1] + results[team][2]) / iterations) * 100
+    top3 = ((results[team][1] + results[team][2] + results[team][3]) / iterations) * 100
     avg_pos = sum(r * c for r, c in results[team].items()) / iterations
     avg_pts = total_points_accumulated[team] / iterations
 
     summary_data.append({
         'Drużyna': team,
         'Śr. pkt': round(avg_pts, 1),
-        '1. msc (%)': f"{win_pct:.2f}%",
-        '2. msc (%)': f"{second_pct:.2f}%",
-        'TOP 3 (%)': f"{top3_pct:.2f}%",
-        'Śr. pozycja': round(avg_pos, 2)
+        '1 miejsce (%)': f"{win:.2f}%",
+        'TOP 2 (%)': f"{top2:.2f}%",
+        'TOP 3 (%)': f"{top3:.2f}%",
+        'Śr. pozycja': round(avg_pos, 1)
     })
 
-df_summary = pd.DataFrame(summary_data).sort_values('Śr. pkt')
+df_summary = pd.DataFrame(summary_data).sort_values('Śr. pozycja', ascending=True)
+
 print(df_summary.to_string(index=False))
+
+df_summary.to_excel('symulacja.xlsx', index=False)
+print("Zapisano wyniki do pliku 'symulacja.xlsx'")
