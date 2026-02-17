@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict
 import random
+import matplotlib.pyplot as plt
+from scipy.stats import poisson
 
 current_stats = {
     'MKS Siechnice': {'pts': 28, 'att': 5.10, 'def': 1.82},
@@ -121,6 +123,33 @@ def simulate_match(home, away):
 iterations = 100000
 results = defaultdict(lambda: defaultdict(int))
 total_points_accumulated = defaultdict(int)
+
+def poisson_charts():
+    names = list(current_stats.keys())
+
+    # Oś X (gole od 0 do 10)
+    x = np.arange(0, 11)
+
+    fig, axes = plt.subplots(6, 2, figsize=(12, 18))
+    axes = axes.flatten()
+    for i in range(len(names)):
+        ax = axes[i]
+        team = names[i]
+
+        att = current_stats[team]['att']
+        def_ = current_stats[team]['def']
+
+        ax.plot(x, poisson.pmf(x, att), 'g-', label=f'scored goals distribution ({att})')
+        ax.plot(x, poisson.pmf(x, def_), 'r-', label=f'lost goals distribution ({def_})')
+
+        ax.set_title(team)
+        ax.legend()
+
+    plt.tight_layout()
+    plt.savefig('img/distributions.jpg')
+    plt.show()
+
+poisson_charts()
 
 for i in range(iterations):
     if i%100==0:
